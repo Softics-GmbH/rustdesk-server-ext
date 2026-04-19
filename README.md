@@ -1,3 +1,63 @@
+# rustdesk-server-ext (Softics fork)
+
+[![build](https://github.com/Softics-GmbH/rustdesk-server-ext/actions/workflows/softics-build.yml/badge.svg?branch=main)](https://github.com/Softics-GmbH/rustdesk-server-ext/actions/workflows/softics-build.yml)
+
+AGPL-3.0 fork of [lejianwen/rustdesk-server](https://github.com/lejianwen/rustdesk-server)
+(itself a fork of [rustdesk/rustdesk-server](https://github.com/rustdesk/rustdesk-server)),
+maintained by **Softics GmbH** for multi-tenant RustDesk hosting with a read-only
+administrative HTTP API.
+
+## Softics fork additions
+
+Phase A (this release) is a pure fork bootstrap — the published image is a
+drop-in replacement for `rustdesk/rustdesk-server` with no functional changes.
+Everything else inherits from the upstream forks listed above.
+
+Planned:
+
+- [ ] Read-only admin API on `:21120` exposing `GET /api/peers` and
+      `GET /health`, secured by an `X-Admin-Token` header.
+- [ ] AGPL Section 13 self-service: `GET /source` redirect to this repo
+      served on the admin port.
+
+See `CHANGELOG.md` for the list of changes against upstream.
+
+## Images
+
+- `ghcr.io/softics-gmbh/rustdesk-server-ext:latest` — minimal scratch image,
+  drop-in replacement for `rustdesk/rustdesk-server` (amd64 only).
+- Per main-branch commit: `ghcr.io/softics-gmbh/rustdesk-server-ext:sha-<short>`.
+- Tagged releases: `ghcr.io/softics-gmbh/rustdesk-server-ext:<version>` and
+  `:v<version>` on tag push.
+
+```bash
+docker pull ghcr.io/softics-gmbh/rustdesk-server-ext:latest
+```
+
+## Building locally
+
+```bash
+cargo build --release --target x86_64-unknown-linux-musl
+```
+
+See the upstream build instructions further below for multi-arch and
+platform-specific notes (Windows, macOS, BSD, s6-overlay variant).
+
+## License & source availability
+
+This fork is licensed under **AGPL-3.0**, identical to upstream. Per AGPL-3.0
+Section 13, any deployment that exposes network-reachable functionality must
+make the corresponding source code available — the `/source` endpoint on the
+admin port (Phase B) and this repository URL satisfy that obligation.
+Modifications by Softics GmbH are documented in `CHANGELOG.md`; upstream
+copyright notices are preserved in `NOTICE`.
+
+## Security
+
+Report vulnerabilities privately via `security@softics.de` — see
+[SECURITY.md](https://github.com/Softics-GmbH/.github/blob/main/SECURITY.md).
+
+---
 
 # 关于此分支
 
