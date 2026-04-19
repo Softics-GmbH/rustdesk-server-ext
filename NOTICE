@@ -1,0 +1,27 @@
+rustdesk-server-ext
+Copyright (C) 2026 Softics GmbH
+
+This product is a derivative work based on:
+
+  rustdesk-server
+  Copyright (C) Purslane Ltd. and RustDesk contributors
+  https://github.com/rustdesk/rustdesk-server
+  Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)
+
+Direct upstream of this fork:
+
+  lejianwen/rustdesk-server
+  Copyright (C) lejianwen and contributors
+  https://github.com/lejianwen/rustdesk-server
+  Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)
+
+Modifications by Softics GmbH (see README.md "Softics fork additions" and
+CHANGELOG.md) remain licensed under AGPL-3.0. The complete corresponding
+source code of this fork is available at:
+
+  https://github.com/Softics-GmbH/rustdesk-server-ext
+
+Per AGPL-3.0 Section 13, users who interact with a network-deployed
+instance of this software are entitled to receive the source code. A
+link to this repository is provided via the hbbs `/source` endpoint
+and in the administrative UI that consumes the admin API.
