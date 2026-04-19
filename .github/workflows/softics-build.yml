@@ -52,7 +52,7 @@ jobs:
         with:
           key: ${{ env.RUST_TARGET }}
 
-      - name: Build binaries (via cross for native deps: sodiumoxide, openssl)
+      - name: Build binaries via cross (native deps — sodiumoxide, openssl)
         run: cross build --release --target ${{ env.RUST_TARGET }}
 
       - name: Stage binaries for docker-classic
