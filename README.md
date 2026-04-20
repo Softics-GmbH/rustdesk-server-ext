@@ -13,10 +13,39 @@ Phase A (this release) is a pure fork bootstrap — the published image is a
 drop-in replacement for `rustdesk/rustdesk-server` with no functional changes.
 Everything else inherits from the upstream forks listed above.
 
+Implemented:
+
+- Read-only count-only admin API (no PII in responses) — enabled by setting
+  the `ADMIN_API_TOKEN` environment variable; if the variable is unset the
+  admin ports stay closed (backward-compat with upstream deployments).
+
+| Binary | Port  | Endpoint              | Auth            | Response              |
+|--------|-------|-----------------------|-----------------|-----------------------|
+| hbbs   | 21120 | `GET /health`         | —               | `200 ok`              |
+| hbbs   | 21120 | `GET /api/peers/count`| `X-Admin-Token` | `{"active": N}`       |
+| hbbr   | 21121 | `GET /health`         | —               | `200 ok`              |
+| hbbr   | 21121 | `GET /api/relay/count`| `X-Admin-Token` | `{"sessions": M}`     |
+
+- `active` = peers whose last UDP heartbeat is within
+  `PEER_ACTIVE_THRESHOLD_SECONDS` (default `120`).
+- `sessions` = currently paired relay streams on the relay server.
+  **Note:** this counts only sessions that go through the relay. Direct P2P
+  sessions (NAT-punch succeeded) are server-invisible by design; `sessions` is
+  therefore a lower bound on total active remote-control sessions.
+
+```bash
+docker run -d -e ADMIN_API_TOKEN=<secret> \
+  -p 21115-21119:21115-21119 -p 21120:21120 \
+  ghcr.io/softics-gmbh/rustdesk-server-ext:latest hbbs
+
+curl -H "X-Admin-Token: <secret>" http://localhost:21120/api/peers/count
+# {"active":7}
+curl http://localhost:21120/health
+# ok
+```
+
 Planned:
 
-- [ ] Read-only admin API on `:21120` exposing `GET /api/peers` and
-      `GET /health`, secured by an `X-Admin-Token` header.
 - [ ] AGPL Section 13 self-service: `GET /source` redirect to this repo
       served on the admin port.
 
