@@ -94,7 +94,11 @@ async fn count_handler(
     let supplied = headers.get(HEADER_NAME).map(|v| v.as_bytes());
     let expected = state.token.as_bytes();
 
-    // Constant-time compare, damit wir Token-Laenge/Inhalt nicht per Timing leaken.
+    // Constant-time compare fuer den Token-Inhalt bei passender Laenge. Der
+    // Length-Mismatch-Case returniert fruehzeitig — damit leakt die Token-
+    // Laenge per Timing, aber nicht der Inhalt. Fuer ein statisches Env-Var-
+    // Secret akzeptables Trade-off; ein Angreifer kann hoechstens die Laenge
+    // enumerieren, nicht den Wert raten.
     let authorized = match supplied {
         Some(s) if s.len() == expected.len() => {
             let mut diff: u8 = 0;
