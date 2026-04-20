@@ -10,6 +10,16 @@ tags — this file only documents Softics-GmbH-specific additions.
 
 ### Added
 
+- **Admin-API (count-only)** — new HTTP endpoints on both hbbs and hbbr for
+  operational monitoring without exposing personally-identifiable data:
+  - `hbbs:21120`: `GET /health`, `GET /api/peers/count` (active peer count
+    within a configurable heartbeat threshold).
+  - `hbbr:21121`: `GET /health`, `GET /api/relay/count` (active paired relay
+    sessions — lower bound, direct P2P is server-invisible).
+  - Authentication via `X-Admin-Token` header with constant-time compare.
+  - Opt-in: endpoints stay closed unless `ADMIN_API_TOKEN` is set.
+  - Configurable threshold via `PEER_ACTIVE_THRESHOLD_SECONDS` (default 120).
+  - `docker-classic/Dockerfile` exposes `21120` and `21121`.
 - `NOTICE` file with Softics-GmbH copyright and upstream attribution chain
   (rustdesk/rustdesk-server → lejianwen/rustdesk-server → this fork).
 - `README.md` Softics fork section at the top (English, fork purpose, image
