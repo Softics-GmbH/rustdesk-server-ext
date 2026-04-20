@@ -89,6 +89,22 @@ impl PeerMap {
         Ok(pm)
     }
 
+    /// Zaehlt Peers, deren letzter Heartbeat juenger als `threshold_secs` ist.
+    /// Nimmt zuerst eine Liste der Peer-Locks unter kurzem Outer-Lock und gibt
+    /// dieses sofort wieder frei — dann wird pro Entry einzeln gelesen, damit
+    /// der Main-Loop nicht blockiert.
+    pub(crate) async fn count_active(&self, threshold_secs: u64) -> u64 {
+        let snapshot: Vec<LockPeer> = self.map.read().await.values().cloned().collect();
+        let mut n: u64 = 0;
+        for peer_lock in snapshot {
+            let peer = peer_lock.read().await;
+            if peer.last_reg_time.elapsed().as_secs() <= threshold_secs {
+                n += 1;
+            }
+        }
+        n
+    }
+
     #[inline]
     pub(crate) async fn update_pk(
         &mut self,

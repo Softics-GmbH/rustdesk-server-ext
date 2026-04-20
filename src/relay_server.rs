@@ -47,6 +47,7 @@ const BLOCKLIST_FILE: &str = "blocklist.txt";
 
 #[tokio::main(flavor = "multi_thread")]
 pub async fn start(port: &str, key: &str) -> ResultType<()> {
+    use std::sync::Arc;
     let key = get_server_sk(key);
     if let Ok(mut file) = std::fs::File::open(BLACKLIST_FILE) {
         let mut contents = String::new();
@@ -82,6 +83,22 @@ pub async fn start(port: &str, key: &str) -> ResultType<()> {
     log::info!("Listening on tcp :{}", port);
     let port2 = port + 2;
     log::info!("Listening on websocket :{}", port2);
+    // Admin-API-Future vorbereiten (count = aktive gepairte Relay-Sessions aus USAGE).
+    // Nur aktiv wenn ADMIN_API_TOKEN gesetzt ist.
+    let admin_api_fut: std::pin::Pin<
+        Box<dyn std::future::Future<Output = ResultType<()>> + Send>,
+    > = if let Some(token) = crate::admin_api::token_from_env() {
+        log::info!("Admin-API enabled on hbbr");
+        let count_fn: crate::admin_api::CountFn = Arc::new(|| {
+            Box::pin(async { USAGE.read().await.len() as u64 })
+        });
+        let bind: std::net::SocketAddr = "0.0.0.0:21121".parse().unwrap();
+        Box::pin(crate::admin_api::run_relay_api(bind, token, count_fn))
+    } else {
+        log::info!("ADMIN_API_TOKEN not set; admin-API disabled on hbbr");
+        Box::pin(std::future::pending::<ResultType<()>>())
+    };
+
     let main_task = async move {
         loop {
             log::info!("Start");
@@ -92,6 +109,7 @@ pub async fn start(port: &str, key: &str) -> ResultType<()> {
     tokio::select!(
         res = main_task => res,
         res = listen_signal => res,
+        res = admin_api_fut => res,
     )
 }
 

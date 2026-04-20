@@ -253,6 +253,32 @@ impl RendezvousServer {
                 }
             });
         };
+        // Admin-API-Future vorbereiten, BEVOR rs ins main_task-Closure verschoben wird.
+        // Wenn ADMIN_API_TOKEN nicht gesetzt ist, bleibt der Port geschlossen
+        // (Backward-Compat mit Upstream-Deployments ohne Softics-Config).
+        let admin_api_fut: std::pin::Pin<
+            Box<dyn std::future::Future<Output = ResultType<()>> + Send>,
+        > = if let Some(token) = crate::admin_api::token_from_env() {
+            let pm_for_api = rs.pm.clone();
+            let threshold = std::env::var("PEER_ACTIVE_THRESHOLD_SECONDS")
+                .ok()
+                .and_then(|v| v.parse::<u64>().ok())
+                .unwrap_or(120);
+            log::info!(
+                "Admin-API enabled: peers-count threshold = {}s",
+                threshold
+            );
+            let count_fn: crate::admin_api::CountFn = Arc::new(move || {
+                let pm = pm_for_api.clone();
+                Box::pin(async move { pm.count_active(threshold).await })
+            });
+            let bind: SocketAddr = "0.0.0.0:21120".parse().unwrap();
+            Box::pin(crate::admin_api::run_peers_api(bind, token, count_fn))
+        } else {
+            log::info!("ADMIN_API_TOKEN not set; admin-API disabled on hbbs");
+            Box::pin(std::future::pending::<ResultType<()>>())
+        };
+
         let main_task = async move {
             loop {
                 log::info!("Start");
@@ -290,6 +316,7 @@ impl RendezvousServer {
         tokio::select!(
             res = main_task => res,
             res = listen_signal => res,
+            res = admin_api_fut => res,
         )
     }
 
