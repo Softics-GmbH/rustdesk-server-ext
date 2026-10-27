@@ -29,11 +29,35 @@ tags — this file only documents Softics-GmbH-specific additions.
   `ghcr.io/softics-gmbh/rustdesk-server-ext` with `:latest`, `:sha-<short>`,
   and (on tag push) `:<version>` + `:<git-ref>` tags.
 
+### Changed
+
+- **Upstream merge: `rustdesk/rustdesk-server` 1.1.16** (2026-10-27). The fork
+  previously sat on an upstream snapshot from March 2025 (`c650217`). Relevant
+  upstream changes now included:
+  - **CVE-2026-30784** — UDP `PunchHoleRequest` is no longer handled by hbbs
+    (unauthenticated reflection/amplification vector). Clients use the
+    TCP/WebSocket path, which stays unchanged.
+  - i32 overflow fix: peers offline for 24.9–49.7 days were wrongly reported
+    online (#676). The fork's `peers_online_state()` helper was switched to
+    `i64` accordingly.
+  - `mio` 0.8.5 → 0.8.11 security update (#633).
+  - Failed key authentication is logged with `warn` on hbbs and hbbr
+    (fail2ban / CrowdSec friendly, #435).
+  - New console command `punch-requests(pr)` listing recent punch-hole
+    requests.
+  - `ENV HOME=/root` in `docker-classic/Dockerfile` (rootless support, #612).
+  - Crate version is now `1.1.16`.
+- `libs/hbb_common` stays on `d6b1497` (newer than upstream's `83419b6`,
+  required for the WebSocket support inherited from lejianwen).
+
 ### Removed
 
+- Upstream deleted `.github/workflows/ghcr.yml`, `.github/workflows/test.yml`
+  and the translated `README-DE.md` / `README-NL.md` / `README-TW.md`; the
+  fork follows that deletion.
 - Accidental `test_push.txt` left over from initial fork setup (PR #1).
 
 ### Preserved from upstream
 
-Upstream workflows (`build.yaml`, `ghcr.yml`, `build-test.yaml`, `test.yml`)
-and docker definitions are kept unmodified to ease future upstream merges.
+Upstream workflows (`build.yaml`, `build-test.yaml`) and docker definitions
+are kept unmodified to ease future upstream merges.
